@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rock Paper Scissors - Best of 5</title>
+  <style>
+    :root {
+      --bg-color: linear-gradient(to right, #74ebd5, #9face6);
+      --text-color: #333;
+      --card-color: white;
+    }
+
+    body.dark {
+      --bg-color: linear-gradient(to right, #232526, #414345);
+      --text-color: #f0f0f0;
+      --card-color: #2e2e2e;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .game-area {
+      background: var(--card-color);
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+      transition: background 0.3s ease;
+    }
+
+    button.choice {
+      padding: 1rem 2rem;
+      margin: 0.5rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      animation: pop 0.3s ease-in-out;
+    }
+
+    button.choice:hover {
+      transform: scale(1.08);
+    }
+
+    .rock { background-color: #ffadad; }
+    .paper { background-color: #ffd6a5; }
+    .scissors { background-color: #caffbf; }
+
+    #result, #final-result {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    #final-result {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #history {
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+
+    ul#history-list {
+      padding-left: 1rem;
+    }
+
+    #scores {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .restart-btn, .theme-btn {
+      margin-top: 1rem;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .restart-btn {
+      background-color: #a0c4ff;
+    }
+
+    .restart-btn:hover {
+      background-color: #91b4f2;
+    }
+
+    .theme-btn {
+      background-color: #ffd6a5;
+      margin-left: 10px;
+    }
+
+    .theme-btn:hover {
+      background-color: #f5c16c;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Rock Paper Scissors - Best of 5</h1>
+
+  <div class="game-area">
+    <div>
+      <button class="choice rock" onclick="play('rock')">🪨 Rock</button>
+      <button class="choice paper" onclick="play('paper')">📄 Paper</button>
+      <button class="choice scissors" onclick="play('scissors')">✂️ Scissors</button>
+    </div>
+
+    <p id="result"></p>
+    <p id="final-result"></p>
+
+    <div id="history">
+      <h3>📜 Game History</h3>
+      <ul id="history-list"></ul>
+    </div>
+
+    <div id="scores">
+      <p><strong>User:</strong> <span id="user-score">0</span> |
+         <strong>Computer:</strong> <span id="comp-score">0</span> |
+         <strong>Draws:</strong> <span id="draw-score">0</span></p>
+    </div>
+
+    <button class="restart-btn" onclick="resetGame()">🔁 Restart Game</button>
+    <button class="theme-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+  </div>
+
+  <!-- Sound effects -->
+  <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-video-game-win-2016.mp3"></audio>
+  <audio id="lose-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-losing-piano-2025.mp3"></audio>
+  <audio id="draw-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-wrong-answer-948.mp3"></audio>
+
+  <script>
+    let userScore = 0;
+    let compScore = 0;
+    let drawScore = 0;
+    let gameOver = false;
+    let round = 0;
+
+    const winSound = document.getElementById("win-sound");
+    const loseSound = document.getElementById("lose-sound");
+    const drawSound = document.getElementById("draw-sound");
+
+    function play(userChoice) {
+      if (gameOver) return;
+
+      const choices = ["rock", "paper", "scissors"];
+      const computerChoice = choices[Math.floor(Math.random() * 3)];
+      let result = "";
+
+      if (userChoice === computerChoice) {
+        result = "Draw!";
+        drawScore++;
+        drawSound.play();
+      } else if (
+        (userChoice === "rock" && computerChoice === "scissors") ||
+        (userChoice === "paper" && computerChoice === "rock") ||
+        (userChoice === "scissors" && computerChoice === "paper")
+      ) {
+        result = "You win!";
+        userScore++;
+        winSound.play();
+      } else {
+        result = "You lose!";
+        compScore++;
+        loseSound.play();
+      }
+
+      round++;
+      document.getElementById("result").textContent =
+        `Round ${round}: You chose ${userChoice}, Computer chose ${computerChoice}. ${result}`;
+      
+      updateScores();
+      addToHistory(userChoice, computerChoice, result);
+      checkWinner();
+    }
+
+    function updateScores() {
+      document.getElementById("user-score").textContent = userScore;
+      document.getElementById("comp-score").textContent = compScore;
+      document.getElementById("draw-score").textContent = drawScore;
+    }
+
+    function addToHistory(user, comp, result) {
+      const li = document.createElement("li");
+      li.textContent = `Round ${round}: You - ${user}, Computer - ${comp} → ${result}`;
+      document.getElementById("history-list").appendChild(li);
+    }
+
+    function checkWinner() {
+      if (userScore === 3 || compScore === 3) {
+        gameOver = true;
+        const winner = userScore === 3 ? "🎉 You won the game!" : "😞 Computer won the game.";
+        document.getElementById("final-result").textContent = `🏁 Game Over! ${winner}`;
+      }
+    }
+
+    function resetGame() {
+      userScore = 0;
+      compScore = 0;
+      drawScore = 0;
+      round = 0;
+      gameOver = false;
+      document.getElementById("result").textContent = "";
+      document.getElementById("final-result").textContent = "";
+      document.getElementById("history-list").innerHTML = "";
+      updateScores();
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+    }
+  </script>
+</body>
+</html>
